@@ -25,6 +25,7 @@
 ## Что находится в репозитории
 
 - `notebooks/` — основной воспроизводимый анализ в Jupyter Notebook.
+- `notebooks/02_preprocessing_merging_2_3.ipynb` — очистка, аннотирование текста, пространственное соединение и объединённая витрина для пункта 2.3.
 - `reports/` — описание выбранных источников и их назначения в работе.
 - `data/raw/` — исходные файлы только на локальном компьютере; в GitHub не загружаются.
 - `data/processed/` — локальные результаты выполнения ноутбуков; в GitHub не загружаются.
@@ -33,9 +34,9 @@
 ## Источники для пункта 2.2
 
 1. **Реляционный набор — основной.** [NYC TLC Yellow Taxi Trip Records](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page), используется [файл за январь 2025 года (Parquet)](https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2025-01.parquet). Поля: время, зоны посадки и высадки, расстояние, число пассажиров, способ оплаты и стоимость. Для расшифровки зон применяются официальный [Taxi Zone Lookup (CSV)](https://d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv) и [Taxi Zone Shapefile (ZIP)](https://d37ci6vzurychx.cloudfront.net/misc/taxi_zones.zip).
-2. **Иерархический набор XML.** [NYC 311 Service Requests: описание набора](https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-Present/erm2-nwe9/about_data), [XML API](https://data.cityofnewyork.us/resource/erm2-nwe9.xml?$limit=1000). Обращения горожан содержат время, тип проблемы, район и координаты. В дальнейшем будут отобраны обращения, связанные с улицами и транспортной средой.
-3. **JSON API.** [NYPD Motor Vehicle Collisions: описание набора](https://data.cityofnewyork.us/Public-Safety/Motor-Vehicle-Collisions-Crashes/h9gi-nx95/about_data), [JSON API](https://data.cityofnewyork.us/resource/h9gi-nx95.json?$limit=1000). ДТП содержат дату и время, координаты, район, причины и числовые показатели пострадавших.
-4. **Неструктурированный текст.** [Архив пресс-релизов NYC DOT за 2025 год](https://www.nyc.gov/html/dot/html/pr2025/prindex-2025.shtml). Это официальные тексты о дорожных работах, безопасности, перекрытиях и изменениях транспортной среды.
+2. **Иерархический набор XML.** [NYC 311 Service Requests: описание набора](https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-Present/erm2-nwe9/about_data), [XML API](https://data.cityofnewyork.us/resource/erm2-nwe9.xml?$limit=1000). Код выбирает до 1 000 обращений строго за январь 2025 года. При временной сетевой ошибке используется ранее сохранённая локальная копия того же январского XML. Обращения содержат время, тип проблемы, район и координаты.
+3. **JSON API.** [NYPD Motor Vehicle Collisions: описание набора](https://data.cityofnewyork.us/Public-Safety/Motor-Vehicle-Collisions-Crashes/h9gi-nx95/about_data), [JSON API](https://data.cityofnewyork.us/resource/h9gi-nx95.json?$limit=1000). В анализ включаются ДТП строго за январь 2025 года.
+4. **Неструктурированный текст.** [Архив пресс-релизов NYC DOT за 2025 год](https://www.nyc.gov/html/dot/html/pr2025/prindex-2025.shtml). Из архива программно отбираются официальные тексты, опубликованные в январе 2025 года.
 
 Полная классификация всех атрибутов по аналитическим шкалам приведена в [`reports/attribute_scales_2_2.md`](reports/attribute_scales_2_2.md).
 
@@ -63,5 +64,17 @@
 3. Скачайте [Taxi Zone Shapefile](https://d37ci6vzurychx.cloudfront.net/misc/taxi_zones.zip), распакуйте архив и поместите все файлы (`.shp`, `.shx`, `.dbf`, `.prj`, `.cpg`) в одну папку внутри `data/raw/taxi_zones/`.
 4. Откройте `notebooks/01_data_sources_and_primary_profile_2_2.ipynb` в Jupyter Notebook или JupyterLab.
 5. Выполните ячейки сверху вниз. Ноутбук сам получает небольшие выборки JSON и XML через официальные API и сохраняет их только локально.
+
+## Пункт 2.3: очистка и объединённое хранение
+
+Второй ноутбук — [`notebooks/02_preprocessing_merging_2_3.ipynb`](notebooks/02_preprocessing_merging_2_3.ipynb). Он запускает воспроизводимый конвейер из [`src/pipeline_2_3.py`](src/pipeline_2_3.py): очищает данные, назначает точечным событиям Taxi Zone, аннотирует и векторизует тексты NYC DOT, агрегирует данные и создаёт локальную Parquet-витрину `data/processed/fact_taxi_zone_hour_2025-01.parquet`.
+
+Для обновления витрины без ручного выполнения ячеек используйте из корня проекта:
+
+```powershell
+python src/pipeline_2_3.py --month 2025-01
+```
+
+Подробное обоснование очистки, пространственного соединения, аннотирования текста, структуры хранения и результаты контрольного запуска приведены в [`reports/preprocessing_merging_2_3.md`](reports/preprocessing_merging_2_3.md).
 
 Исходные наборы данных не добавляются в GitHub из-за размера и условий воспроизводимости. В репозитории хранятся ноутбуки, код, документация и история изменений.
